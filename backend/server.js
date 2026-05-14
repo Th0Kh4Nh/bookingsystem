@@ -90,6 +90,48 @@ app.post('/api/bookings', async (req, res) => {
 });
 
 
+// Get All Bookings
+app.get('/api/bookings', async (req, res) => {
+  try {
+    const bookings = await Booking.find().sort({ createdAt: -1 });
+    res.json(bookings);
+  } catch (error) {
+    console.error('Error fetching bookings:', error.message);
+    res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
+});
+
+// Cancel a Booking by ID
+app.delete('/api/bookings/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: 'Invalid booking ID' });
+    }
+
+    const deletedBooking = await Booking.findByIdAndDelete(id);
+
+    if (!deletedBooking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    console.log(`Booking deleted: ${id}`);
+    res.json({ message: 'Booking cancelled successfully', booking: deletedBooking });
+  } catch (error) {
+    console.error('Error deleting booking:', error.message);
+    res.status(500).json({ error: 'Failed to cancel booking' });
+  }
+});
+
+// ===== ERROR HANDLING MIDDLEWARE =====
+app.use((err, req, res, next) => {
+  console.error('Unhandled Error:', err.message);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+
+
 // ===== START SERVER =====
 const PORT = process.env.PORT || 5000;
 
