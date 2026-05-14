@@ -62,6 +62,32 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true });
 });
 
+// Create a Booking
+app.post('/api/bookings', async (req, res) => {
+  try {
+    const { customerName, pitchName, startTime, endTime, status } = req.body;
+
+    // Validate required fields
+    if (!customerName || !pitchName || !startTime || !endTime) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const booking = new Booking({
+      customerName,
+      pitchName,
+      startTime: new Date(startTime),
+      endTime: new Date(endTime),
+      status: status || 'Đã đặt'
+    });
+
+    const savedBooking = await booking.save();
+    console.log(`Booking created: ${savedBooking._id}`);
+    res.status(201).json(savedBooking);
+  } catch (error) {
+    console.error('Error creating booking:', error.message);
+    res.status(500).json({ error: 'Failed to create booking' });
+  }
+});
 
 
 // ===== START SERVER =====
