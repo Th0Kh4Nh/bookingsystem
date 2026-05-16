@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  db:
+    image: mongo:latest
+    container_name: booking_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    networks:
+      - booking_network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: booking_backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    env_file:
+      - ./backend/.env
+    networks:
+      - booking_network
+    environment:
+      - DB_URL=mongodb://admin:password@db:27017/booking_system?authSource=admin
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: booking_frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - booking_network
+
+volumes:
+  mongo_data:
+
+networks:
+  booking_network:
+    driver: bridge
